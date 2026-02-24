@@ -9,7 +9,6 @@ set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="pasta"
-NODE_PORT=3000
 
 # ── colours ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -25,6 +24,10 @@ echo ""
 echo "=== pasta installer ==="
 echo ""
 
+read -rp "PORT [default: 3000]: " NODE_PORT; echo
+NODE_PORT="${NODE_PORT:-3000}"
+[[ "$NODE_PORT" =~ ^[0-9]+$ ]] || error "PORT must be a number."
+
 read -rsp "AUTH_PASSWORD (login password for pasta): " AUTH_PASSWORD; echo
 [[ -z "$AUTH_PASSWORD" ]] && error "AUTH_PASSWORD cannot be empty."
 
@@ -33,10 +36,10 @@ read -rsp "JWT_SECRET [leave blank to auto-generate]: " JWT_SECRET; echo
 JWT_SECRET="${JWT_SECRET:-$DEFAULT_JWT_SECRET}"
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
-apt-get update -q
-apt-get install -y -q curl git
 
 if ! command -v node &>/dev/null; then
+  apt-get update -q
+  apt-get install -y -q curl git
   info "Installing Node.js 22..."
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
   apt-get install -y -q nodejs
