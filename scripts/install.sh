@@ -57,7 +57,7 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
 fi
 
 mkdir -p "$APP_DIR/data" "$APP_DIR/files"
-chmod 750 "$APP_DIR/data" "$APP_DIR/files"
+chmod 711 "$APP_DIR/data" "$APP_DIR/files"
 
 # ── environment file ──────────────────────────────────────────────────────────
 info "Writing /etc/pasta.env..."
