@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-APP_DIR="/opt/pasta"
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="pasta"
 NODE_PORT=3000
 
