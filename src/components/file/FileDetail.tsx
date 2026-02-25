@@ -16,10 +16,9 @@ interface Props {
 
 export default function FileDetail({ file, isAuthenticated }: Props) {
   const [isEditing, setIsEditing] = useState(false)
-  const [currentFile, setCurrentFile] = useState(file)
   const [viewSource, setViewSource] = useState(false)
 
-  const isMd = MD_EXTENSIONS.has(currentFile.extension)
+  const isMd = MD_EXTENSIONS.has(file.extension)
 
   function handleEditCancel() {
     setIsEditing(false)
@@ -31,9 +30,9 @@ export default function FileDetail({ file, isAuthenticated }: Props) {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-xs text-zinc-500 font-mono bg-zinc-800 px-1.5 py-0.5 rounded flex-shrink-0">
-            .{currentFile.extension}
+            .{file.extension}
           </span>
-          <span className="text-zinc-200 font-mono text-sm truncate">{currentFile.filename}</span>
+          <span className="text-zinc-200 font-mono text-sm truncate">{file.filename}</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -64,20 +63,20 @@ export default function FileDetail({ file, isAuthenticated }: Props) {
           )}
 
           {isAuthenticated && !isEditing && (
-            <FileMenu hash={currentFile.hash} onEdit={() => setIsEditing(true)} />
+            <FileMenu hash={file.hash} onEdit={() => setIsEditing(true)} />
           )}
         </div>
       </div>
 
       {/* Body */}
       {isEditing ? (
-        <EditForm file={currentFile} onCancel={handleEditCancel} />
+        <EditForm file={file} onCancel={handleEditCancel} />
       ) : isMd && !viewSource ? (
-        <MarkdownPreview content={currentFile.content} />
+        <MarkdownPreview content={file.content} />
       ) : (
         <CodeMirrorEditor
-          content={currentFile.content}
-          extension={currentFile.extension}
+          content={file.content}
+          extension={file.extension}
           readOnly={true}
         />
       )}
