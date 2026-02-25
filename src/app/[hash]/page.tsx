@@ -5,8 +5,21 @@ import { readFile } from '@/lib/files'
 import { getServerAuthStatus } from '@/lib/auth'
 import FileDetail from '@/components/file/FileDetail'
 import type { FileMeta, FileWithContent } from '@/types'
+import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ hash: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { hash } = await params
+  const db = await getDb()
+  const result = await db.execute({
+    sql: 'SELECT filename FROM files WHERE hash = ?',
+    args: [hash],
+  })
+  if (result.rows.length === 0) return { title: 'pasta' }
+  const { filename } = result.rows[0] as unknown as Pick<FileMeta, 'filename'>
+  return { title: `${filename} 🍽️ pasta` }
+}
 
 export default async function DetailPage({ params }: Props) {
   const { hash } = await params
