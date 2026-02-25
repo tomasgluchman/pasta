@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '@/lib/db'
 import { writeFile } from '@/lib/files'
 import { generateHash } from '@/lib/hash'
+import { getServerAuthStatus } from '@/lib/auth'
 import type { FileMeta } from '@/types'
 
+const MAX_FILE_SIZE = 1024 * 1024 // 1 MB
+
 export async function GET() {
+  if (!(await getServerAuthStatus())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const db = await getDb()
   const result = await db.execute(
     'SELECT * FROM files ORDER BY created_at DESC'
@@ -14,6 +20,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await getServerAuthStatus())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const contentType = req.headers.get('content-type') ?? ''
   let filename: string
   let content: string
@@ -26,9 +36,15 @@ export async function POST(req: NextRequest) {
     const contentField = formData.get('content') as string | null
 
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json({ error: 'File exceeds 1 MB limit' }, { status: 413 })
+      }
       filename = file.name
       content = await file.text()
     } else if (nameField && contentField !== null) {
+      if (contentField.length > MAX_FILE_SIZE) {
+        return NextResponse.json({ error: 'Content exceeds 1 MB limit' }, { status: 413 })
+      }
       filename = nameField
       content = contentField
     } else {
@@ -41,6 +57,9 @@ export async function POST(req: NextRequest) {
     if (!filename) {
       return NextResponse.json({ error: 'Missing filename' }, { status: 400 })
     }
+    if (content.length > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'Content exceeds 1 MB limit' }, { status: 413 })
+    }
   }
 
   const parts = filename.split('.')
@@ -48,13 +67,18 @@ export async function POST(req: NextRequest) {
   if (!extension) extension = 'txt'
 
   const hash = generateHash()
-  await writeFile(hash, extension, content)
-
   const db = await getDb()
   await db.execute({
     sql: 'INSERT INTO files (hash, filename, extension) VALUES (?, ?, ?)',
     args: [hash, filename, extension],
   })
+
+  try {
+    await writeFile(hash, extension, content)
+  } catch (err) {
+    await db.execute({ sql: 'DELETE FROM files WHERE hash = ?', args: [hash] })
+    throw err
+  }
 
   return NextResponse.json({ hash, filename, extension }, { status: 201 })
 }

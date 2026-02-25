@@ -2,7 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { signToken, COOKIE_NAME } from '@/lib/auth'
 
+const RATE_LIMIT_MAX = 3
+const RATE_LIMIT_WINDOW_MS = 60_000
+const loginAttempts = new Map<string, { count: number; windowStart: number }>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const record = loginAttempts.get(ip)
+  if (!record || now - record.windowStart > RATE_LIMIT_WINDOW_MS) {
+    loginAttempts.set(ip, { count: 1, windowStart: now })
+    return false
+  }
+  if (record.count >= RATE_LIMIT_MAX) return true
+  record.count++
+  return false
+}
+
+function getClientIp(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+}
+
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req)
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      { error: 'Too many login attempts. Try again in a minute.' },
+      { status: 429 }
+    )
+  }
+
   const { password } = await req.json()
 
   const expected = process.env.AUTH_PASSWORD
