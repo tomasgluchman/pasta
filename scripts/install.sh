@@ -64,6 +64,7 @@ info "Writing /etc/pasta.env..."
 cat > /etc/pasta.env <<EOF
 NODE_ENV=production
 PORT=${NODE_PORT}
+APP_DIR=${APP_DIR}
 AUTH_PASSWORD=${AUTH_PASSWORD}
 JWT_SECRET=${JWT_SECRET}
 EOF

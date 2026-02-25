@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-const FILES_DIR = path.join(process.cwd(), 'files')
+const FILES_DIR = path.join(process.env.APP_DIR ?? process.cwd(), 'files')
 
 async function ensureFilesDir(): Promise<void> {
   await fs.mkdir(FILES_DIR, { recursive: true })

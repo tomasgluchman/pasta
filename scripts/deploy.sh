@@ -45,6 +45,10 @@ cp -r .next/static  .next/standalone/.next/static
 cp -r public        .next/standalone/public
 
 # ── 5. ensure runtime directories exist ───────────────────────────────────────
+# These must live in APP_DIR (the project root), NOT inside .next/standalone/.
+# Next.js standalone server.js calls process.chdir(__dirname), which would
+# place data/ and files/ inside .next/standalone/ — wiping them on every build.
+# APP_DIR is set in /etc/pasta.env and used by db.ts / files.ts at runtime.
 mkdir -p data files
 
 # ── 6. reload service ────────────────────────────────────────────────────────

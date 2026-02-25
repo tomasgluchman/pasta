@@ -7,7 +7,8 @@ let initialized = false
 
 export async function getDb(): Promise<Client> {
   if (!client) {
-    const dataDir = path.join(process.cwd(), 'data')
+    const base = process.env.APP_DIR ?? process.cwd()
+    const dataDir = path.join(base, 'data')
     await fs.mkdir(dataDir, { recursive: true })
     const dbPath = path.join(dataDir, 'pasta.db')
     client = createClient({ url: `file:${dbPath}` })
