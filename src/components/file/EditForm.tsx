@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUnsavedWarning } from '@/hooks/useUnsavedWarning'
 import { extFromFilename } from '@/lib/languages'
@@ -19,10 +19,17 @@ export default function EditForm({ file, onCancel }: Props) {
   const [langOverride, setLangOverride] = useState<string>('auto')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [closing, setClosing] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
   const isDirty = filename !== file.filename || content !== file.content
   useUnsavedWarning(isDirty)
+
+  // Close the edit form once the router refresh has settled
+  useEffect(() => {
+    if (closing && !isPending) onCancel()
+  }, [closing, isPending, onCancel])
 
   const currentExt = extFromFilename(filename) || file.extension
 
@@ -45,8 +52,8 @@ export default function EditForm({ file, onCancel }: Props) {
         setError(data.error ?? 'Save failed')
         return
       }
-      router.refresh()
-      onCancel()
+      setClosing(true)
+      startTransition(() => router.refresh())
     } catch {
       setError('Save failed')
     } finally {
@@ -74,7 +81,7 @@ export default function EditForm({ file, onCancel }: Props) {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || closing}
             className="text-sm bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 text-zinc-100 rounded px-3 py-1.5 transition-colors"
           >
             {saving ? 'Saving…' : 'Save'}
