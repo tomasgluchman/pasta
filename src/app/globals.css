@@ -78,6 +78,10 @@ body {
   font-size: inherit;
   font-family: ui-monospace, monospace;
 }
+/* Keep our pre background; let hljs supply syntax colours only */
+.md-prose pre .hljs {
+  background: transparent;
+}
 
 /* Blockquotes */
 .md-prose blockquote {
