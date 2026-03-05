@@ -44,3 +44,7 @@ next-env.d.ts
 # pasta app data
 /data/
 /files/
+
+# claude code
+.claude/
+_CR_Report_*.md
