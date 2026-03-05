@@ -8,6 +8,7 @@ export const SUPPORTED_LANGUAGES = [
   { label: 'TSX', value: 'tsx' },
   { label: 'CSS', value: 'css' },
   { label: 'Python', value: 'py' },
+  { label: 'Bash / Shell', value: 'sh' },
   { label: 'Markdown', value: 'md' },
   { label: 'MDX', value: 'mdx' },
   { label: 'Plain text', value: 'txt' },
@@ -36,6 +37,13 @@ export async function getLanguageExtension(ext: string): Promise<Extension | nul
     case 'py': {
       const { python } = await import('@codemirror/lang-python')
       return python()
+    }
+    case 'sh':
+    case 'bash':
+    case 'zsh': {
+      const { StreamLanguage } = await import('@codemirror/language')
+      const { shell } = await import('@codemirror/legacy-modes/mode/shell')
+      return StreamLanguage.define(shell)
     }
     case 'md':
     case 'mdx':
